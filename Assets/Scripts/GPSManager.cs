@@ -10,10 +10,13 @@ public class GPSManager : MonoBehaviour
     public Text text_ui;
     public GameObject welcome_popUp;
     public bool isFirst = false;
+    public bool isGold = false;
 
     public double[] lats;
     public double[] longs;
-
+    public GameObject goldBox_PopUp;
+    public Animator goldBox_Anim;
+    public GameObject goldBox_container;
     IEnumerator Start()
     {
         while (!Permission.HasUserAuthorizedPermission(Permission.FineLocation))
@@ -66,20 +69,12 @@ public class GPSManager : MonoBehaviour
             double myLat = Input.location.lastData.latitude;
             double myLong = Input.location.lastData.longitude;
 
-            double remainDistance = distance(myLat, myLong, lats[0], longs[0]);
-
-            if (remainDistance <= 215f) // 215m
-            {
-                if (!isFirst)
-                {
-                    isFirst = true;
-                    welcome_popUp.SetActive(true);
-                }
-            }
+            WelcomePopup(myLat, myLong);
+            GoldBoxPopup(myLat, myLong);
         }
     }
 
-		// ÁöÇ¥¸é °Å¸® °è»ê °ø½Ä(ÇÏ¹ö»çÀÎ °ø½Ä)
+    // ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½Ï¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
     private double distance(double lat1, double lon1, double lat2, double lon2)
     {
         double theta = lon1 - lon2;
@@ -92,11 +87,36 @@ public class GPSManager : MonoBehaviour
 
         dist = dist * 60 * 1.1515;
 
-        dist = dist * 1609.344; // ¹ÌÅÍ º¯È¯
+        dist = dist * 1609.344; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 
         return dist;
     }
+    private void WelcomePopup(double myLat, double myLong)
+    {
+        double remainDistance = distance(myLat, myLong, lats[0], longs[0]);
 
+            if (remainDistance <= 215f) // 215m
+            {
+                if (!isFirst)
+                {
+                    isFirst = true;
+                    welcome_popUp.SetActive(true);
+                }
+            }
+    }
+    private void GoldBoxPopup(double myLat, double myLong)
+    {
+        double remainDistance = distance(myLat, myLong, lats[1], longs[1]);
+
+            if (remainDistance <= 10) // 10m
+            {
+                if (!isGold)
+                {
+                    isGold = true;
+                    goldBox_PopUp.SetActive(true);
+                }
+            }
+    }
     private double Deg2Rad(double deg)
     {
         return (deg * Mathf.PI / 180.0f);
@@ -107,4 +127,15 @@ public class GPSManager : MonoBehaviour
         return (rad * 180.0f / Mathf.PI);
     }
 
+    public void OnOpenBox()
+    {
+        goldBox_Anim.SetTrigger("Open");
+        Invoke("PopupDelayOff", 2f);
+    }
+    private void PopupDelayOff()
+    {
+        goldBox_PopUp.SetActive(false);
+        goldBox_container.SetActive(true);
+        goldBox_container.transform.position = Camera.main.transform.forward * 3f;
+    }
 }
